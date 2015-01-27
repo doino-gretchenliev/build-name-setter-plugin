@@ -3,4 +3,9 @@
 	<f:entry title="${%Build Name}" field="template">
 		<f:textbox default="#$${BUILD_NUMBER}" />
 	</f:entry>
+	 <j:if test="${descriptor.isMatrixJob(it)}">
+       <f:entry title="${%Build Name Matrix Head}" field="template_matrix_head">
+           	<f:textbox default="#$${BUILD_NUMBER}" />
+       </f:entry>
+     </j:if>
 </j:jelly>

@@ -2,9 +2,7 @@ package org.jenkinsci.plugins.buildnamesetter;
 
 import hudson.Extension;
 import hudson.Launcher;
-import hudson.matrix.MatrixAggregatable;
-import hudson.matrix.MatrixAggregator;
-import hudson.matrix.MatrixBuild;
+import hudson.matrix.*;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
@@ -15,6 +13,9 @@ import org.jenkinsci.plugins.tokenmacro.TokenMacro;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.List;
 
 /**
  * Set the name twice.
@@ -26,11 +27,19 @@ import java.io.IOException;
 public class BuildNameSetter extends BuildWrapper implements MatrixAggregatable {
 
     public final String template;
+    public final String template_matrix_head;
 
     @DataBoundConstructor
+    public BuildNameSetter(String template, String template_matrix_head) {
+        this.template = template;
+        this.template_matrix_head=template_matrix_head;
+    }
+
     public BuildNameSetter(String template) {
         this.template = template;
+        this.template_matrix_head=null;
     }
+
 
     @Override
     public Environment setUp(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
@@ -47,7 +56,51 @@ public class BuildNameSetter extends BuildWrapper implements MatrixAggregatable 
 
     private void setDisplayName(AbstractBuild build, BuildListener listener) throws IOException, InterruptedException {
         try {
-            build.setDisplayName(TokenMacro.expandAll(build, listener, template));
+
+            if (build instanceof MatrixBuild){
+                build.setDisplayName(TokenMacro.expandAll(build, listener, template_matrix_head));
+            }
+            else {
+                build.setDisplayName(TokenMacro.expandAll(build, listener, template));
+            }
+
+           // Boolean is_head=false;
+           // try {
+               // Method is_head_matrix = build.getClass().getMethod("getRuns");
+                //is_head=true;
+                //List runs= (List) is_head_matrix.invoke(build);
+
+
+               /* if (runs!=null&&runs.size()>0){
+                    build.setDisplayName(TokenMacro.expandAll(build, listener, template_matrix_head));
+                }
+                else {
+                    build.setDisplayName(TokenMacro.expandAll(build, listener, template));
+
+                }
+                   }
+            catch (NoSuchMethodException e){
+                is_head=false;
+            }
+            catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }*/
+
+
+
+          /*  if(!is_head) {
+
+                try {
+                    build.setDisplayName(TokenMacro.expandAll(build, listener, template));
+                  //  ((MatrixRun) build).getParentBuild().readResolve();
+                }
+                catch (Exception e ){
+                    e.printStackTrace();
+                }
+
+            }*/
+
+
         } catch (MacroEvaluationException e) {
             listener.getLogger().println(e.getMessage());
         }
@@ -79,6 +132,14 @@ public class BuildNameSetter extends BuildWrapper implements MatrixAggregatable 
         @Override
         public String getDisplayName() {
             return "Set Build Name";
+        }
+
+        public boolean isMatrixJob(AbstractProject<?, ?> item) {
+            if(item instanceof MatrixProject){
+                return true;
+            }
+            else
+                return false;
         }
     }
 }
