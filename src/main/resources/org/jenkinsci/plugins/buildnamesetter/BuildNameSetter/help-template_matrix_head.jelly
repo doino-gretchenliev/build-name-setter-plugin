@@ -1,0 +1,7 @@
+<div>
+    In Matrix Projects it is reasonable to assign the head-build a different name than its axes-builds'name.
+    If left blank, the head build name will be set to the build sequential number.
+    This field can contain the following macros:
+    
+    <help xmlns="/lib/token-macro" />
+</div>
