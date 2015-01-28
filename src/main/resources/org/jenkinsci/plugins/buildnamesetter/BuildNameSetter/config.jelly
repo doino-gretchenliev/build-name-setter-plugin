@@ -4,6 +4,7 @@
 		<f:textbox default="#$${BUILD_NUMBER}" />
 	</f:entry>
 	 <j:if test="${descriptor.isMatrixJob(it)}">
+	 	xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
        <f:entry title="${%Build Name Matrix Head}" field="template_matrix_head">
            	<f:textbox default="#$${BUILD_NUMBER}" />
        </f:entry>

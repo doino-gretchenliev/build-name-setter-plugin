@@ -1,11 +1,15 @@
 package org.jenkinsci.plugins.buildnamesetter;
 
 import static org.junit.Assert.assertEquals;
+
+import hudson.matrix.*;
+import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleBuild;
 import hudson.model.Result;
 import hudson.model.FreeStyleProject;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 
 import org.junit.Rule;
@@ -24,6 +28,27 @@ public class BuildNameSetterTest {
 		
 		FreeStyleBuild fooBuild = fooProj.scheduleBuild2(0).get();
 		asssertDisplayName(fooBuild, "a_#1");
+	}
+
+	@Test
+	public void distinctTemplateMatrixBuild() throws InterruptedException, ExecutionException, IOException {
+		MatrixProject fooProj = jenkins.createMatrixProject("foo");
+
+		AxisList axisList= new AxisList();
+		axisList.add(new Axis("fooAxes", Arrays.asList("f_1", "f_2", "f_3")));
+		fooProj.setAxes(axisList);
+
+		fooProj.getBuildWrappersList().add(new BuildNameSetter("a_#${BUILD_NUMBER}_axe", "a_#${BUILD_NUMBER}"));
+
+		MatrixBuild fooBuild = fooProj.scheduleBuild2(0).get();
+		asssertDisplayName(fooBuild, "a_#1");
+
+		int iterator=0;
+		for (MatrixRun axe : fooBuild.getRuns()) {
+
+			asssertDisplayName(axe,"a_#1_axe");
+
+		}
 	}
 
 	@Test
@@ -65,7 +90,7 @@ public class BuildNameSetterTest {
 		asssertDisplayName(fooBuild, "d_master_foo");
 	}
 
-	private void asssertDisplayName(FreeStyleBuild build, String expectedName) {
+	private void asssertDisplayName(AbstractBuild build, String expectedName) {
 		assertEquals(Result.SUCCESS, build.getResult());
 		assertEquals(expectedName, build.getDisplayName());
 	}
